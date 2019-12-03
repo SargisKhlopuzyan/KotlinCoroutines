@@ -10,16 +10,17 @@ import com.example.kotlincoroutines.model.Tutorial
  *
  * @author Sargis Khlopuzyan (sargis.khlopuzyan@fcc.am)
  */
-class TutorialPagerAdapter(private val tutorialList: List<Tutorial>,
-                           fm: FragmentManager) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class TutorialPagerAdapter(
+    private val tutorialList: List<Tutorial>,
+    fm: FragmentManager
+) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     override fun getCount(): Int {
         return tutorialList.size
     }
 
     override fun getItem(position: Int): Fragment {
-        return TutorialFragment.newInstance(
-            tutorialList[position]
-        )
+//        return TutorialSuspendFragment.newInstance(tutorialList[position])
+        return TutorialFragment.newInstance(tutorialList[position])
     }
 }

@@ -18,7 +18,7 @@ import java.net.URL
 /**
  * A simple [Fragment] subclass.
  */
-class TutorialFragment : Fragment() {
+class TutorialSuspendFragment : Fragment() {
 
     // await - սպասել
     // suspend - հետաձգել
@@ -29,8 +29,8 @@ class TutorialFragment : Fragment() {
 
         const val TUTORIAL_KEY = "TUTORIAL"
 
-        fun newInstance(tutorial: Tutorial): TutorialFragment {
-            val fragmentHome = TutorialFragment()
+        fun newInstance(tutorial: Tutorial): TutorialSuspendFragment {
+            val fragmentHome = TutorialSuspendFragment()
             val args = Bundle()
             args.putParcelable(TUTORIAL_KEY, tutorial)
             fragmentHome.arguments = args
@@ -73,8 +73,8 @@ class TutorialFragment : Fragment() {
         )
 
         coroutineScope.launch(Dispatchers.Main) {
-            val originalBitmap = getOriginalBitmapAsync(tutorial!!).await()
-            val snowFilterBitmap = loadSnowFilterAsync(originalBitmap).await()
+            val originalBitmap = getOriginalBitmapAsync(tutorial!!)
+            val snowFilterBitmap = loadSnowFilterAsync(originalBitmap)
             loadImage(snowFilterBitmap)
         }
     }
@@ -89,35 +89,15 @@ class TutorialFragment : Fragment() {
         parentJob.cancel()
     }
 
-    /**
-    1) Creates a regular function, getOriginalBitmapAsync(), which returns a Deferred Bitmap value.
-    This emphasizes that the result may not be immediately available.
-
-    2) Use the async() to create a coroutine in an input-output optimized Dispatcher.
-    This will offload work from the main thread, to avoid freezing the UI.
-
-    3) Opens a stream from the image’s URL and uses it to create a Bitmap, finally returning it.
-     */
-    // 1
-    private fun getOriginalBitmapAsync(tutorial: Tutorial): Deferred<Bitmap> =
-        // 2
-        coroutineScope.async(Dispatchers.IO) {
-            // 3
+    private suspend fun getOriginalBitmapAsync(tutorial: Tutorial): Bitmap =
+        withContext(Dispatchers.IO) {
             URL(tutorial.url).openStream().use {
-                return@async BitmapFactory.decodeStream(it)
+                return@withContext BitmapFactory.decodeStream(it)
             }
         }
 
-    private fun loadSnowFilterAsync(originalBitmap: Bitmap): Deferred<Bitmap> =
-        coroutineScope.async(Dispatchers.Default) {
+    private suspend fun loadSnowFilterAsync(originalBitmap: Bitmap): Bitmap =
+        withContext(Dispatchers.Default) {
             SnowFilter.applySnowEffect(originalBitmap)
         }
-
-
-    /**
-     * - NOTE -
-     * Right now, we are returning Deferreds. But we want the results when they become available.
-     * We’ll have to use await(), a suspending function, on the Deferreds, which will give us the result when it’s available.
-     * In our case – a Bitmap.
-     * */
 }
